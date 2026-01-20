@@ -7,18 +7,18 @@ class TransaksiController:
         self.inventory_model = inventory_model
         self.view = view
         
-        # Connect signals
+        # Hubungkan sinyal
         self.view.search_item.textChanged.connect(self.filter_items)
         self.view.search_trans.textChanged.connect(self.filter_transactions)
         self.view.btn_submit.clicked.connect(lambda: self.submit_booking("BOOKED"))
         self.view.btn_save_draft.clicked.connect(self.save_as_draft)
         self.view.btn_refresh_dashboard.clicked.connect(self.refresh_all)
         
-        # Date changes should refresh cart prices
+        # Perubahan tanggal harus memperbarui harga keranjang
         self.view.inp_start_date.dateChanged.connect(self.refresh_cart_prices)
         self.view.inp_end_date.dateChanged.connect(self.refresh_cart_prices)
         
-        # Inject custom logic to view's dynamic elements if needed
+        # Masukkan logika kustom ke elemen dinamis view jika diperlukan
         self.view.request_add_to_cart = self.add_item_to_cart
         self.view.request_change_status = self.change_status
         self.view.request_show_details = self.show_details
@@ -71,7 +71,7 @@ class TransaksiController:
         self.view.update_cart_table()
 
     def add_item_to_cart(self, item, jumlah):
-        # We check available_stock (computed in model as stok_tersedia)
+        # Kita cek available_stock (dihitung di model sebagai stok_tersedia)
         if item.get('stok_tersedia', 0) < jumlah:
             QMessageBox.warning(self.view, "Stok Kurang", "Stok tidak mencukupi hari ini.")
             return

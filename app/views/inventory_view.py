@@ -7,16 +7,25 @@ from PyQt6.QtCore import Qt, QSize
 
 class InventoryView(QWidget):
     def __init__(self):
+        """
+        [MVC - View]
+        Inisialisasi tampilan manajemen inventaris.
+        """
         super().__init__()
         self.init_ui()
         self.apply_view_styles()
 
     def init_ui(self):
+        """
+        [MVC - View]
+        Membangun struktur visual (Layout, Tombol, Tabel).
+        View hanya mendefinisikan 'apa yang dilihat user', tanpa logika bisnis.
+        """
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(20)
 
-        # Top Bar
+        # Baris Atas
         top_bar = QFrame()
         top_bar.setFixedHeight(60)
         top_bar_layout = QHBoxLayout(top_bar)
@@ -55,7 +64,7 @@ class InventoryView(QWidget):
 
         self.main_layout.addWidget(top_bar)
 
-        # Inventory Table (The "List")
+        # Tabel Inventaris (Daftar)
         self.table = QTableWidget()
         self.table.setColumnCount(7) 
         self.table.setHorizontalHeaderLabels(["ID", "NAMA ITEM", "KATEGORI", "SKU", "Ketersediaan", "STOK ", "ACTION"])
@@ -82,6 +91,10 @@ class InventoryView(QWidget):
         self.main_layout.addWidget(self.table)
 
     def apply_view_styles(self):
+        """
+        [MVC - View]
+        Menerapkan styling CSS untuk mempercantik tampilan.
+        """
         self.setStyleSheet("""
             QWidget#InventoryView { background-color: #f7fafc; }
             QLineEdit {
@@ -124,6 +137,12 @@ class InventoryView(QWidget):
         """)
 
     def display_items(self, items):
+        """
+        [MVC - View]
+        Menampilkan data barang ke dalam tabel.
+        Menerima list dictionary 'items' dari Controller dan merender baris demi baris.
+        Juga memperbarui pilihan filter kategori secara dinamis.
+        """
         self.table.setRowCount(len(items))
         
         kategori_set = sorted(list(set(item['kategori'] for item in items)))
@@ -222,6 +241,11 @@ class InventoryView(QWidget):
             self.table.setRowHeight(baris, 65)
 
     def show_context_menu(self, pos):
+        """
+        [MVC - View]
+        Menampilkan menu klik kanan (Context Menu) pada baris tabel.
+        Mengirim sinyal permintaan aksi ke Controller saat menu dipilih.
+        """
         row = self.table.currentRow()
         if row < 0: return
         id_brg, nama_brg = self.get_item_by_row(row)
@@ -239,6 +263,11 @@ class InventoryView(QWidget):
             self.request_delete_item(id_brg, nama_brg)
 
     def get_selected_item(self):
+        """
+        [MVC - View]
+        Helper untuk mendapatkan ID dan Nama barang yang sedang dipilih user.
+        Digunakan oleh Controller untuk mengetahui barang mana yang akan diedit.
+        """
         row = self.table.currentRow()
         if row >= 0:
             return self.table.item(row, 0).text(), self.table.item(row, 1).text()

@@ -7,14 +7,14 @@ from app.database import Database
 def main():
     app = QApplication(sys.argv)
     
-    # Initialize Database
+    # Inisialisasi Database
     db = Database()
     db.init_db()
 
-    # MVC Initialization
+    # Inisialisasi MVC
     window = MainWindow()
     controller = MainController(window) 
-    window.show()
+    window.showMaximized()
     sys.exit(app.exec())
 
 if __name__ == "__main__":

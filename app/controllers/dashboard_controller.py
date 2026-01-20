@@ -2,6 +2,12 @@ from PyQt6.QtWidgets import QMessageBox
 
 class DashboardController:
     def __init__(self, inventory_model, rental_model, view, main_window):
+        """
+        [MVC - Controller]
+        Controller Dashboard bertindak sebagai koordinator utama.
+        Menggabungkan data dari berbagai Model (Inventory & Rental)
+        untuk disajikan dalam satu View (DashboardView).
+        """
         self.inventory_model = inventory_model
         self.rental_model = rental_model
         self.view = view
@@ -14,6 +20,14 @@ class DashboardController:
         self.refresh_data()
 
     def refresh_data(self):
+        """
+        [MVC - Controller]
+        Mengumpulkan dan mengolah ringkasan data.
+        1. Mengambil data transaksi dari RentalModel.
+        2. Mengambil data stok dari InventoryModel.
+        3. Menghitung statistik (Booked, Active, Returned, dll).
+        4. Memperbarui DashboardView dengan angka-angka terbaru.
+        """
         try:
             # 1. Get Transaction Counts
             transaksi = self.rental_model.get_all_transactions()
@@ -47,7 +61,9 @@ class DashboardController:
             
             for baris, t in enumerate(terbaru):
                 self.view.mini_table.setItem(baris, 0, QTableWidgetItem(f"#{t['id'][:6].upper()}"))
-                self.view.mini_table.setItem(baris, 1, QTableWidgetItem(t['nama_pelanggan']))
+                nama_pelanggan_item = QTableWidgetItem(t['nama_pelanggan'])
+                nama_pelanggan_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.view.mini_table.setItem(baris, 1, nama_pelanggan_item)
                 
                 status_item = QTableWidgetItem(t['status'])
                 status_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)

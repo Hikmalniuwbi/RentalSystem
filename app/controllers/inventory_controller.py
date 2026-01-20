@@ -5,23 +5,32 @@ from PyQt6.QtWidgets import (
 
 class InventoryController:
     def __init__(self, model, view):
+        """
+        [MVC - Controller]
+        Menginisialisasi Controller Inventaris.
+        Menghubungkan (Binding) logika bisnis ke interaksi UI (Signals & Slots).
+        """
         self.model = model
         self.view = view
         
-        # Connect signals from view to controller methods
+        # Hubungkan sinyal dari view ke metode controller
         self.view.btn_refresh.clicked.connect(self.refresh_data)
         self.view.btn_add.clicked.connect(self.show_add_dialog)
         self.view.btn_set_price.clicked.connect(self.show_price_dialog)
         
-        # New: Search and Filter
+        # Baru: Pencarian dan Filter
         self.view.search_input.textChanged.connect(self.filter_data)
         self.view.cat_filter.currentTextChanged.connect(self.filter_data)
         
-        # New: Dynamic action button
+        # Baru: Tombol aksi dinamis
         self.view.request_manage_item = self.manage_item
         self.view.request_delete_item = self.delete_item
 
     def refresh_data(self):
+        """
+        [MVC - Controller]
+        Mengambil data terbaru dari Model dan memperbarui tampilan via View.
+        """
         try:
             self.all_items = self.model.get_all_items()
             self.filter_data()
@@ -29,6 +38,11 @@ class InventoryController:
             QMessageBox.critical(self.view, "Error", f"Gagal memuat data: {str(e)}")
 
     def delete_item(self, id_barang, nama_barang):
+        """
+        [MVC - Controller]
+        Menangani permintaan penghapusan barang.
+        Meminta konfirmasi ke user (via View) sebelum memerintahkan Model untuk menghapus data.
+        """
         reply = QMessageBox.question(
             self.view, "Hapus Barang",
             f"Apakah Anda yakin ingin menghapus '{nama_barang}'?\nSemua histori harga juga akan dihapus.",
@@ -44,6 +58,12 @@ class InventoryController:
                 QMessageBox.critical(self.view, "Error", f"Gagal menghapus: {str(e)}")
 
     def filter_data(self):
+        """
+        [MVC - Controller]
+        Logika pemfilteran data (Pencarian & Kategori).
+        Mengolah data mentah dari Model berdasarkan input user di View,
+        lalu mengirimkan hasil filter kembali ke View untuk ditampilkan.
+        """
         teks_cari = self.view.search_input.text().lower()
         filter_kategori = self.view.cat_filter.currentText()
         
@@ -58,11 +78,20 @@ class InventoryController:
         self.view.display_items(item_difilter)
 
     def manage_item(self, id_barang, nama_barang):
+        """
+        [MVC - Controller]
+        Menyiapkan data spesifik barang untuk diedit.
+        """
         item_detail = next((i for i in getattr(self, 'all_items', []) if i['id'] == id_barang), None)
         if item_detail:
             self.open_manage_dialog(item_detail)
 
     def open_manage_dialog(self, item):
+        """
+        [MVC - Controller]
+        Membuka dialog 'Kelola Barang' (View).
+        Controller mengatur isi awal form berdasarkan data yang ada.
+        """
         id_barang = item['id']
         dialog = QDialog(self.view)
         dialog.setWindowTitle(f"Kelola Barang: {item['nama']}")
@@ -71,7 +100,7 @@ class InventoryController:
         
         tabs = QTabWidget()
         
-        # Tab 1: Edit Details
+        # Tab 1: Edit Detail
         detail_tab = QWidget()
         detail_layout = QFormLayout(detail_tab)
         
@@ -93,7 +122,7 @@ class InventoryController:
         
         tabs.addTab(detail_tab, "Informasi Dasar")
         
-        # Tab 2: Pricing
+        # Tab 2: Harga
         price_tab = QWidget()
         price_layout = QFormLayout(price_tab)
         
@@ -115,14 +144,18 @@ class InventoryController:
         btn_save_p.clicked.connect(lambda: self.save_price(dialog, id_barang, duration_input.value(), price_input.value()))
         price_layout.addRow(btn_save_p)
         
-        # Existing Prices
+        # Harga Saat Ini
         harga_ada = self.model.get_prices_for_item(id_barang)
         if harga_ada:
             info_label = QLabel("\nHarga Paket Saat Ini:")
             info_label.setStyleSheet("font-weight: bold; color: #2d3748;")
             price_layout.addRow(info_label)
             for p in harga_ada:
-                price_layout.addRow(f"{p['durasi_hari']} Hari:", QLabel(f"Rp {p['harga']:,}"))
+                lbl_duraci = QLabel(f"{p['durasi_hari']} Hari:")
+                lbl_duraci.setStyleSheet("color: #2d3748; font-weight: bold;")
+                lbl_harga = QLabel(f"Rp {p['harga']:,}")
+                lbl_harga.setStyleSheet("color: #2d3748; font-weight: normal;")
+                price_layout.addRow(lbl_duraci, lbl_harga)
                 
         tabs.addTab(price_tab, "Paket Harga")
         
@@ -130,6 +163,10 @@ class InventoryController:
         dialog.exec()
 
     def update_item_info(self, dialog, id_barang, nama, kategori, stok):
+        """
+        [MVC - Controller]
+        Memvalidasi input dari form edit dan meminta Model untuk menyimpan perubahan.
+        """
         if not nama:
             QMessageBox.warning(dialog, "Validasi", "Nama barang harus diisi")
             return
@@ -141,6 +178,10 @@ class InventoryController:
             QMessageBox.critical(dialog, "Error", f"Gagal memperbarui: {str(e)}")
 
     def show_add_dialog(self):
+        """
+        [MVC - Controller]
+        Membuka dialog untuk menambah barang baru.
+        """
         dialog = QDialog(self.view)
         dialog.setWindowTitle("Tambah Barang Baru")
         layout = QFormLayout(dialog)
@@ -161,6 +202,10 @@ class InventoryController:
         dialog.exec()
 
     def save_item(self, dialog, nama, kategori, stok):
+        """
+        [MVC - Controller]
+        Menerima input barang baru, validasi, dan simpan via Model.
+        """
         if not nama:
             QMessageBox.warning(dialog, "Validasi", "Nama barang harus diisi")
             return
@@ -174,6 +219,10 @@ class InventoryController:
             QMessageBox.critical(self.view, "Error", f"Gagal menyimpan: {str(e)}")
 
     def show_price_dialog(self):
+        """
+        [MVC - Controller]
+        Membuka dialog pengaturan harga paket berdasarkan item yang dipilih di tabel.
+        """
         data_item = self.view.get_selected_item()
         if not data_item:
             QMessageBox.warning(self.view, "Peringatan", "Pilih barang terlebih dahulu di tabel.")
@@ -185,6 +234,10 @@ class InventoryController:
             self.open_manage_dialog(item_detail)
 
     def save_price(self, dialog, id_barang, durasi, harga):
+        """
+        [MVC - Controller]
+        Memerintahkan Model untuk menyimpan konfigurasi harga paket.
+        """
         try:
             self.model.add_price_package(id_barang, durasi, harga)
             dialog.accept()

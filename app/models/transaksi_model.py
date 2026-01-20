@@ -4,9 +4,20 @@ import uuid
 
 class TransaksiModel:
     def __init__(self):
+        """
+        [MVC - Model]
+        Inisialisasi model transaksi.
+        Membuka koneksi database.
+        """
         self.conn = Database.get_connection()
 
     def cek_ketersediaan(self, id_barang: str, tanggal_mulai: date, tanggal_selesai: date):
+        """
+        [MVC - Model]
+        Logika Bisnis Compleks:
+        Mengecek apakah barang tersedia pada rentang tanggal yang diminta.
+        Menghitung stok total dikurangi barang yang sedang di-booking/aktif pada tanggal tersebut.
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT stok_total FROM barang WHERE id = ?", (id_barang,))
         res = cursor.fetchone()
@@ -30,12 +41,17 @@ class TransaksiModel:
         return max(0, stok_total - digunakan)
 
     def create_transaksi(self, data_transaksi, data_item):
+        """
+        [MVC - Model]
+        Menyimpan transaksi baru beserta item-itemnya secara atomik.
+        Menerima data dari Controller yang sudah divalidasi.
+        """
         id_transaksi = str(uuid.uuid4())
         data_transaksi['id'] = id_transaksi
         
         cursor = self.conn.cursor()
         
-        # INSERT TRANSACTION
+        # SISIPKAN TRANSAKSI
         keys = data_transaksi.keys()
         values = list(data_transaksi.values())
         placeholders = ", ".join(["?" for _ in keys])
@@ -43,7 +59,7 @@ class TransaksiModel:
         query = f"INSERT INTO transaksi ({columns}) VALUES ({placeholders})"
         cursor.execute(query, tuple(values))
         
-        # INSERT ITEMS
+        # SISIPKAN ITEM
         for item in data_item:
             cursor.execute("""
                 INSERT INTO item_transaksi (id_transaksi, id_barang, jumlah, harga_disepakati)
@@ -54,11 +70,19 @@ class TransaksiModel:
         return id_transaksi
     
     def get_all_transactions(self):
+        """
+        [MVC - Model]
+        Mengambil riwayat semua transaksi untuk keperluan pelaporan/dashboard.
+        """
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM transaksi ORDER BY tanggal_mulai DESC")
         return [dict(row) for row in cursor.fetchall()]
     
     def get_active_transactions(self):
+        """
+        [MVC - Model]
+        Mengambil hanya transaksi yang sedang berjalan (BOOKED atau ACTIVE).
+        """
         cursor = self.conn.cursor()
         cursor.execute("""
             SELECT * FROM transaksi 
@@ -68,12 +92,21 @@ class TransaksiModel:
         return [dict(row) for row in cursor.fetchall()]
             
     def update_status(self, id_transaksi, status_baru):
+        """
+        [MVC - Model]
+        Memperbarui status transaksi (misal: dari BOOKED -> ACTIVE, atau ACTIVE -> RETURNED).
+        """
         cursor = self.conn.cursor()
         cursor.execute("UPDATE transaksi SET status = ? WHERE id = ?", (status_baru, id_transaksi))
         self.conn.commit()
         return True
 
     def get_transaction_items(self, id_transaksi):
+        """
+        [MVC - Model]
+        Mengambil detail item apa saja yang disewa dalam satu ID transaksi.
+        Melakukan JOIN dengan tabel barang untuk mendapatkan nama barang.
+        """
         cursor = self.conn.cursor()
         cursor.execute("""
             SELECT it.jumlah, it.harga_disepakati, b.nama 

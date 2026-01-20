@@ -8,11 +8,11 @@ class MainController:
     def __init__(self, main_window):
         self.main_window = main_window
         
-        # Initialize Models
+        # Inisialisasi Model
         self.inventory_model = InventoryModel()
         self.transaksi_model = TransaksiModel()
         
-        # Initialize Tab Controllers
+        # Inisialisasi Controller Tab
         self.dashboard_controller = DashboardController(
             self.inventory_model,
             self.transaksi_model,
@@ -29,15 +29,15 @@ class MainController:
             self.main_window.rental_tab
         )
         
-        # Initial Load
+        # Muat Awal
         self.dashboard_controller.refresh_data()
         self.inventory_controller.refresh_data()
         self.transaksi_controller.refresh_all()
         
-        # Connect tab change signals
+        # Hubungkan sinyal perubahan tab
         self.main_window.tabs.currentChanged.connect(self.on_tab_changed)
         
-        # New: Global Search Connection
+        # Baru: Koneksi Pencarian Global
         self.main_window.search_input.textChanged.connect(self.on_global_search)
 
     def on_global_search(self, text):

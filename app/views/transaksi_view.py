@@ -125,12 +125,14 @@ class TransaksiView(QWidget):
         item_layout.addLayout(item_sel_header)
 
         self.avail_table = QTableWidget()
-        self.avail_table.setColumnCount(3)
-        self.avail_table.setHorizontalHeaderLabels(["NAMA BARANG", "STOK", "AKSI"])
+        self.avail_table.setColumnCount(4)
+        self.avail_table.setHorizontalHeaderLabels(["NO", "NAMA BARANG", "STOK", "AKSI"])
+        self.avail_table.verticalHeader().setVisible(False) # Sembunyikan nomor baris default
         header = self.avail_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents) # NO
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)          # NAMA BARANG
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # STOK
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # AKSI
         self.avail_table.setMinimumHeight(200)
         item_layout.addWidget(self.avail_table)
         
@@ -258,11 +260,11 @@ class TransaksiView(QWidget):
             }
             
             QFrame#summary_card { background-color: #1e4d3a; border-radius: 16px; }
-            QFrame#summary_card QLabel { color: #f0fff4; } /* Lighter green/white for readability */
+            QFrame#summary_card QLabel { color: #f0fff4; } /* Hijau/putih terang agar mudah dibaca */
             
             QLabel#total_big { font-size: 36px; font-weight: 900; color: #ffffff; margin: 15px 0; }
             
-            /* Enhanced Action Button in Table */
+            /* Tombol Aksi yang Ditingkatkan di Tabel */
             QPushButton#add_cart_btn {
                 background-color: #234e3f;
                 color: white;
@@ -275,9 +277,9 @@ class TransaksiView(QWidget):
                 background-color: #2f6a55;
             }
             
-            /* Main Confirmation Button */
+            /* Tombol Konfirmasi Utama */
             QPushButton#confirm_btn { 
-                background-color: #ecc94b; /* Solid Yellow for high contrast */
+                background-color: #ecc94b; /* Kuning solid untuk kontras tinggi */
                 color: #1a3a2f; 
                 border: none; 
                 border-radius: 10px; 
@@ -332,12 +334,12 @@ class TransaksiView(QWidget):
             self.trans_table.setCellWidget(row, 3, status_container)
             
             view_btn = QPushButton("LIHAT DETAIL")
-            view_btn.setObjectName("detail_btn_table") # Specific ID for table variant
+            view_btn.setObjectName("detail_btn_table") # ID khusus untuk varian tabel
             view_btn.setFixedSize(110, 32)
             view_btn.setCursor(Qt.CursorShape.PointingHandCursor)
             view_btn.clicked.connect(lambda _, tid=t['id']: self.request_show_details(tid))
             
-            # Container for centering
+            # Kontainer untuk penengahan
             btn_container = QWidget()
             btn_layout = QHBoxLayout(btn_container)
             btn_layout.setContentsMargins(0, 0, 0, 0)
@@ -411,11 +413,20 @@ class TransaksiView(QWidget):
     def display_available_items(self, items):
         self.avail_table.setRowCount(len(items))
         for row, item in enumerate(items):
-            self.avail_table.setItem(row, 0, QTableWidgetItem(item['nama']))
+            # NO (Nomor Urut)
+            no_item = QTableWidgetItem(str(row + 1))
+            no_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.avail_table.setItem(row, 0, no_item)
+
+            # NAMA BARANG
+            self.avail_table.setItem(row, 1, QTableWidgetItem(item['nama']))
+
+            # STOK
             stok_item = QTableWidgetItem(str(item.get('stok_tersedia', 0)))
             stok_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.avail_table.setItem(row, 1, stok_item)
+            self.avail_table.setItem(row, 2, stok_item)
             
+            # AKSI
             action_widget = QWidget()
             h_layout = QHBoxLayout(action_widget)
             h_layout.setContentsMargins(5, 5, 5, 5)
@@ -437,7 +448,7 @@ class TransaksiView(QWidget):
             h_layout.addWidget(btn)
             h_layout.addStretch()
             
-            self.avail_table.setCellWidget(row, 2, action_widget)
+            self.avail_table.setCellWidget(row, 3, action_widget)
             self.avail_table.setRowHeight(row, 55)
 
     def show_transaction_details_dialog(self, items):
@@ -446,17 +457,40 @@ class TransaksiView(QWidget):
         dialog.setMinimumWidth(500)
         layout = QVBoxLayout(dialog)
         table = QTableWidget()
-        table.setColumnCount(3)
-        table.setHorizontalHeaderLabels(["Nama Barang", "Jumlah", "Harga"])
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        table.setColumnCount(4)
+        table.setHorizontalHeaderLabels(["No", "Nama Barang", "Jumlah", "Harga"])
+        table.verticalHeader().setVisible(False)
+        
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        
         table.setRowCount(len(items))
         total = 0
         for row, item in enumerate(items):
+            # No
+            no_item = QTableWidgetItem(str(row + 1))
+            no_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            table.setItem(row, 0, no_item)
+            
+            # Nama Barang
             nama_brg = item.get('barang', {}).get('nama', 'Unknown')
-            table.setItem(row, 0, QTableWidgetItem(nama_brg))
-            table.setItem(row, 1, QTableWidgetItem(str(item['jumlah'])))
-            table.setItem(row, 2, QTableWidgetItem(f"Rp {item['harga_disepakati']:,}"))
+            table.setItem(row, 1, QTableWidgetItem(nama_brg))
+            
+            # Jumlah
+            qty_item = QTableWidgetItem(str(item['jumlah']))
+            qty_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            table.setItem(row, 2, qty_item)
+            
+            # Harga
+            price_item = QTableWidgetItem(f"Rp {item['harga_disepakati']:,}")
+            price_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            table.setItem(row, 3, price_item)
+            
             total += item['harga_disepakati'] * item['jumlah']
+        
         layout.addWidget(table)
         total_lbl = QLabel(f"Total Biaya: Rp {total:,}")
         total_lbl.setStyleSheet("font-size: 16px; font-weight: bold; margin-top: 10px;")

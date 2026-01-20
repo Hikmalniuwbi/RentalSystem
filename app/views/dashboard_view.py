@@ -36,7 +36,7 @@ class StatCard(QFrame):
             QFrame#stat_card {{
                 background-color: white;
                 border: 1px solid #e2e8f0;
-                border-bottom: 3px solid {icon_color}; /* Accent border */
+                border-bottom: 3px solid {icon_color}; /* Batas aksen */
                 border-radius: 12px;
             }}
             QFrame#stat_card:hover {{
@@ -63,25 +63,38 @@ class StatCard(QFrame):
 
 class DashboardView(QWidget):
     def __init__(self, parent=None):
+        """
+        [MVC - View]
+        Inisialisasi tampilan Dashboard.
+        View ini benar-benar pasif, hanya menunggu panggilan update_stats() dari Controller.
+        """
         super().__init__(parent)
         self.init_ui()
 
     def update_stats(self, booked, in_use, returned, maintenance, stock_summary):
+        """
+        [MVC - View]
+        Menerima data statistik mentah dari Controller dan memperbarui label/grafik UI.
+        View tidak melakukan perhitungan, hanya menampilkan.
+        """
         self.card_booked.val_label.setText(str(booked))
         self.card_in_use.val_label.setText(str(in_use))
         self.card_returned.val_label.setText(str(returned))
-        self.card_maint.val_label.setText(str(maintenance))
         
-        # Update Stock Summary Circles
-        # Assuming stock_summary = {'total': X, 'avail': Y, 'out': Z}
-        # We need to find the labels and update them. 
-        # Since we didn't store references, let's refactor the init_ui slightly to store them or just find them.
-        # Actually, let's just refactor to store them.
+        # Perbarui Lingkaran Ringkasan Stok
+        # Asumsi stock_summary = {'total': X, 'avail': Y, 'out': Z}
+        # Kita perlu mencari label dan memperbaruinya. 
+        # Karena kita tidak menyimpan referensi, mari refactor init_ui sedikit untuk menyimpannya atau cari saja.
+        # Sebenarnya, mari refactor saja untuk menyimpannya.
         self.lbl_stock_total.setText(str(stock_summary.get('total', 0)))
         self.lbl_stock_avail.setText(str(stock_summary.get('avail', 0)))
         self.lbl_stock_out.setText(str(stock_summary.get('out', 0)))
 
     def init_ui(self):
+        """
+        [MVC - View]
+        Membangun layout dashboard: Header, Kartu Statistik, dan Ringkasan Stok.
+        """
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(30)
@@ -102,27 +115,25 @@ class DashboardView(QWidget):
         
         self.main_layout.addLayout(header_layout)
 
-        # Stats Grid
+        # Grid Statistik
         stats_layout = QGridLayout()
         stats_layout.setSpacing(20)
         
         self.card_booked = StatCard("Booking", "0", "Menunggu Pick Up", "", "#3182ce")
         self.card_in_use = StatCard("Sedang Di Pakai", "0", "Sedang Di Pakai", "", "#38a169")
         self.card_returned = StatCard("Dikembalikan", "0", "Dikembalikan", "", "#dd6b20")
-        self.card_maint = StatCard("Perawatan", "0", "Perawatan", "", "#e53e3e")
         
         stats_layout.addWidget(self.card_booked, 0, 0)
         stats_layout.addWidget(self.card_in_use, 0, 1)
         stats_layout.addWidget(self.card_returned, 0, 2)
-        stats_layout.addWidget(self.card_maint, 0, 3)
         
         self.main_layout.addLayout(stats_layout)
 
-        # Middle Content (Splitter or Row)
+        # Konten Tengah (Pemisah atau Baris)
         mid_layout = QHBoxLayout()
         mid_layout.setSpacing(25)
         
-        # Real-time Stock Card
+        # Kartu Stok Real-time
         stock_frame = QFrame()
         stock_frame.setObjectName("content_card")
         stock_layout = QVBoxLayout(stock_frame)
@@ -137,7 +148,7 @@ class DashboardView(QWidget):
         stock_layout.addLayout(stock_header)
         stock_layout.addSpacing(20)
         
-        # Summary circles
+        # Lingkaran Ringkasan
         sum_layout = QHBoxLayout()
         sum_layout.setSpacing(40)
         
@@ -163,7 +174,7 @@ class DashboardView(QWidget):
         
         mid_layout.addWidget(stock_frame, 1)
 
-        # Transaction Status Card
+        # Kartu Status Transaksi
         trans_frame = QFrame()
         trans_frame.setObjectName("content_card")
         trans_layout = QVBoxLayout(trans_frame)
@@ -175,7 +186,7 @@ class DashboardView(QWidget):
         trans_header.addWidget(th_label); trans_header.addStretch()
         trans_layout.addLayout(trans_header)
         
-        # Mini table for recent activity
+        # Tabel mini untuk aktivitas terbaru
         self.mini_table = QTableWidget()
         self.mini_table.setColumnCount(4)
         self.mini_table.setHorizontalHeaderLabels(["ID", "KOSTUMER", "STATUS", "JUMLAH"])

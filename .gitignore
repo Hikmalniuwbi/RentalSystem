@@ -1,0 +1,31 @@
+# Python defaults
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Environments variables
+.env
+
+# Database
+rental_app.db
+*.db
+*.sqlite3
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+
+# OS specific files
+.DS_Store
+Thumbs.db

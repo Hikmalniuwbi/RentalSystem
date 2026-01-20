@@ -3,7 +3,9 @@ from PyQt6.QtWidgets import (
     QListWidget, QStackedWidget, QLabel, QListWidgetItem,
     QFrame, QLineEdit
 )
+from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtCore import Qt, QSize
+import os
 from app.views.inventory_view import InventoryView
 from app.views.transaksi_view import TransaksiView  
 from app.views.dashboard_view import DashboardView
@@ -12,17 +14,23 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Kelana Outdoor Rental System")
+        
+        # Set Window Icon
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        icon_path = os.path.join(base_dir, "Kelana.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
         self.setMinimumSize(1200, 850)
         
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         
-        # Main Layout: Horizontal
+        # Layout Utama: Horizontal
         self.main_layout = QHBoxLayout(main_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # 1. SIDEBAR
+        # 1. PANEL SAMPING
         self.sidebar_frame = QFrame()
         self.sidebar_frame.setObjectName("sidebar")
         self.sidebar_frame.setFixedWidth(240)
@@ -30,15 +38,29 @@ class MainWindow(QMainWindow):
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(0)
 
-        # Branding
+        # Branding (Merek)
+        # Branding (Merek)
         brand_frame = QFrame()
         brand_frame.setObjectName("brand_frame")
-        brand_frame.setFixedHeight(90)
+        brand_frame.setFixedHeight(180)  # Diperbesar LAGI agar logo 100% muat dan tidak terpotong
         brand_layout = QVBoxLayout(brand_frame)
-        brand_layout.setContentsMargins(25, 20, 25, 10)
+        brand_layout.setContentsMargins(20, 20, 20, 10)
         
-        logo_label = QLabel("") 
-        logo_label.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
+        logo_label = QLabel()
+        # Mencari path gambar Kelana.png relatif terhadap file ini
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        logo_path = os.path.join(base_dir, "Kelana.png")
+        
+        if os.path.exists(logo_path):
+            pixmap = QPixmap(logo_path)
+            # Scaling proporsional: Maksimum lebar 180px (sidebar 240 - margin), tinggi 60px
+            scaled_pixmap = pixmap.scaled(QSize(180, 80), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            logo_label.setPixmap(scaled_pixmap)
+            logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter) # Tengah secara horizontal
+            logo_label.setContentsMargins(0, 0, 0, 15)
+        else:
+            logo_label.setText("KELANA")
+            logo_label.setStyleSheet("color: white; font-size: 24px; font-weight: bold;")
         
         self.brand_title = QLabel("KELANA OUTDOOR")
         self.brand_title.setStyleSheet("color: white; font-size: 18px; font-weight: 800; margin-top: -5px;")
@@ -51,7 +73,7 @@ class MainWindow(QMainWindow):
         
         sidebar_layout.addWidget(brand_frame)
 
-        # Menu List
+        # Daftar Menu
         self.menu_list = QListWidget()
         self.menu_list.setObjectName("menu_list")
         
@@ -67,21 +89,21 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addWidget(self.sidebar_frame)
 
-        # 2. CONTENT AREA
+        # 2. AREA KONTEN
         self.content_container = QFrame()
         self.content_container.setObjectName("content_container")
         self.right_layout = QVBoxLayout(self.content_container)
         self.right_layout.setContentsMargins(0, 0, 0, 0)
         self.right_layout.setSpacing(0)
 
-        # Top Header (Search & Profile)
+        # Header Atas (Pencarian & Profil)
         self.top_header = QFrame()
         self.top_header.setObjectName("top_header")
         self.top_header.setFixedHeight(70)
         header_layout = QHBoxLayout(self.top_header)
         header_layout.setContentsMargins(30, 0, 30, 0)
         
-        # Search Box
+        # Kotak Pencarian
         self.search_box = QFrame()
         self.search_box.setObjectName("search_box")
         search_inner = QHBoxLayout(self.search_box)
@@ -106,7 +128,7 @@ class MainWindow(QMainWindow):
         
         header_layout.addStretch()
         
-        # User Profile Mockup
+        # Mockup Profil Pengguna
         profile_layout = QHBoxLayout()
         profile_layout.setSpacing(12)
         
@@ -131,7 +153,7 @@ class MainWindow(QMainWindow):
         
 
 
-        # View Area (Stacked)
+        # Area Tampilan (Stacked)
         self.tabs = QStackedWidget()
         
         self.dashboard_tab = DashboardView()
@@ -148,7 +170,7 @@ class MainWindow(QMainWindow):
         
         self.main_layout.addWidget(self.content_container)
 
-        # Connect Signals
+        # Hubungkan Sinyal
         self.menu_list.currentRowChanged.connect(self.change_page)
         
         self.apply_styles()
@@ -159,7 +181,7 @@ class MainWindow(QMainWindow):
         self.menu_list.addItem(item)
 
     def change_page(self, index):
-        # Sidebar to stacked widget mapping
+        # Pemetaan Sidebar ke Stacked Widget
         # 0: Dashboard -> stack 0
         # 1: Inventory -> stack 1
         # 2: Transactions -> stack 2
